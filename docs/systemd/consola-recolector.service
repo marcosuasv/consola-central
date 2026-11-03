@@ -1,0 +1,14 @@
+# /etc/systemd/system/consola-recolector.service
+# Toma una lectura de las apps y del servidor para el Tablero de la Consola Central.
+[Unit]
+Description=Consola Central - recolector de estado
+After=network-online.target mariadb.service
+
+[Service]
+Type=oneshot
+User=consola
+Group=consola
+WorkingDirectory=/var/www/html/consola-central
+ExecStart=/usr/bin/php /var/www/html/consola-central/artisan consola:recolectar --no-ansi
+TimeoutStartSec=55
+Nice=10

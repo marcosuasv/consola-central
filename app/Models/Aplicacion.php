@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Aplicación Laravel del servidor vigilada por la consola.
@@ -106,6 +108,22 @@ class Aplicacion extends Model
         }
 
         return array_map('intval', explode(',', $this->puertos_publicos));
+    }
+
+    public function estados(): HasMany
+    {
+        return $this->hasMany(EstadoApp::class);
+    }
+
+    public function ultimoEstado(): HasOne
+    {
+        return $this->hasOne(EstadoApp::class)->latestOfMany();
+    }
+
+    /** Carpeta de logs de Laravel de la app. */
+    public function rutaLogs(): string
+    {
+        return $this->ruta().'/storage/logs';
     }
 
     public function scopeMonitoreadas(Builder $query): Builder

@@ -64,6 +64,27 @@ return [
             ]) : [],
         ],
 
+        // Solo lectura a las bases de las apps (usuario consola_ro, columnas limitadas).
+        // Sin base fija: consultar con nombre calificado, ej. `GamTask`.sessions
+        'lectura' => [
+            'driver' => 'mysql',
+            'host' => env('DB_RO_HOST', '127.0.0.1'),
+            'port' => env('DB_RO_PORT', '3306'),
+            'database' => null,
+            'username' => env('DB_RO_USERNAME', 'consola_ro'),
+            'password' => env('DB_RO_PASSWORD', ''),
+            'unix_socket' => env('DB_RO_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? [
+                PDO::ATTR_TIMEOUT => 5,
+            ] : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
