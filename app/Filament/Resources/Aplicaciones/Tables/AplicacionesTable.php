@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Aplicaciones\Tables;
 
+use App\Filament\Resources\Aplicaciones\AplicacionResource;
 use App\Models\Aplicacion;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -68,6 +71,11 @@ class AplicacionesTable
                     ->label('Monitoreo'),
             ])
             ->recordActions([
+                Action::make('monitor')
+                    ->label('Monitor')
+                    ->icon(Heroicon::OutlinedChartBar)
+                    ->color('gray')
+                    ->url(fn (Aplicacion $record): string => AplicacionResource::getUrl('monitor', ['record' => $record])),
                 EditAction::make(),
             ])
             ->toolbarActions([

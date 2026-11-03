@@ -1,0 +1,11 @@
+# /etc/systemd/system/consola-recolector.timer
+[Unit]
+Description=Consola Central - recolector cada minuto
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target
