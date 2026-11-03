@@ -49,11 +49,12 @@ class ResumenGeneral extends StatsOverviewWidget
         $usuarios = $apps->sum(fn ($a) => $a->ultimoEstado?->usuarios_conectados ?? 0);
 
         return [
-            Stat::make('Aplicaciones operando', $conteo[Semaforo::VERDE].' de '.$vigiladas)
+            // "En línea" = servicio activo y respondiendo (verde o amarillo). Amarillo es un aviso, no una caída.
+            Stat::make('Aplicaciones en línea', ($conteo[Semaforo::VERDE] + $conteo[Semaforo::AMARILLO]).' de '.$vigiladas)
                 ->description(match (true) {
-                    $conteo[Semaforo::ROJO] > 0 => $conteo[Semaforo::ROJO].' con falla · '.$conteo[Semaforo::AMARILLO].' con atención',
-                    $conteo[Semaforo::AMARILLO] > 0 => $conteo[Semaforo::AMARILLO].' requieren atención',
-                    default => 'Todas sin problemas',
+                    $conteo[Semaforo::ROJO] > 0 => $conteo[Semaforo::ROJO].' con falla'.($conteo[Semaforo::AMARILLO] ? ' · '.$conteo[Semaforo::AMARILLO].' con avisos' : ''),
+                    $conteo[Semaforo::AMARILLO] > 0 => $conteo[Semaforo::VERDE].' sin avisos · '.$conteo[Semaforo::AMARILLO].' con avisos',
+                    default => 'Todas sin avisos',
                 })
                 ->descriptionIcon($peor === Semaforo::VERDE ? Heroicon::OutlinedCheckBadge : Heroicon::OutlinedExclamationTriangle)
                 ->color(Semaforo::colorFilament($peor))
@@ -117,7 +118,7 @@ class ResumenGeneral extends StatsOverviewWidget
             $serie = fn (callable $f) => array_values(array_map($f, $porHora));
 
             return [
-                'operando' => $serie(fn ($l) => collect($l)->where('semaforo', Semaforo::VERDE)->count()),
+                'operando' => $serie(fn ($l) => collect($l)->whereIn('semaforo', [Semaforo::VERDE, Semaforo::AMARILLO])->count()),
                 'usuarios' => $serie(fn ($l) => (int) collect($l)->sum('usuarios_conectados')),
                 'alertas' => $serie(fn ($l) => (int) collect($l)->sum(fn ($e) => count($e->alertas ?? []))),
                 'ram' => array_values(array_map(fn ($v) => $v ? (int) round(array_sum($v) / count($v)) : 0, $ram)),
