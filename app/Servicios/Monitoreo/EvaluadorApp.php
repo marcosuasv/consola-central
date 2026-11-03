@@ -53,9 +53,9 @@ class EvaluadorApp
         }
 
         if (($lectura['jobs_fallidos_24h'] ?? 0) > $u['fallidos_24h']) {
-            $rojo("{$lectura['jobs_fallidos_24h']} jobs fallidos en 24 h.");
+            $rojo(self::plural($lectura['jobs_fallidos_24h'], 'job fallido', 'jobs fallidos').' en 24 h.');
         } elseif (($lectura['jobs_fallidos_24h'] ?? 0) > 0) {
-            $amarillo("{$lectura['jobs_fallidos_24h']} jobs fallidos en 24 h.");
+            $amarillo(self::plural($lectura['jobs_fallidos_24h'], 'job fallido', 'jobs fallidos').' en 24 h.');
         }
 
         if ($app->esOctane() && $app->servicio_cola && ($lectura['cola_estado'] ?? null) !== null && $lectura['cola_estado'] !== 'active') {
@@ -71,7 +71,7 @@ class EvaluadorApp
         }
 
         if (($lectura['errores_log_24h'] ?? 0) > 0) {
-            $amarillo("{$lectura['errores_log_24h']} errores en laravel.log en 24 h.");
+            $amarillo(self::plural($lectura['errores_log_24h'], 'error', 'errores').' en laravel.log en 24 h.');
         }
 
         if (($lectura['jobs_pendientes'] ?? 0) > $u['pendientes']) {
@@ -81,6 +81,11 @@ class EvaluadorApp
         $semaforo = Semaforo::peor(Semaforo::VERDE, ...array_column($alertas, 'nivel'));
 
         return ['semaforo' => $semaforo, 'alertas' => $alertas];
+    }
+
+    private static function plural(int $n, string $uno, string $varios): string
+    {
+        return $n.' '.($n === 1 ? $uno : $varios);
     }
 
     public static function estadoLegible(?string $estado): string
