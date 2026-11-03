@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Aplicaciones\Pages;
 
+use App\Filament\Acciones\AccionesControl;
 use App\Filament\Pages\Tablero;
 use App\Filament\Resources\Aplicaciones\AplicacionResource;
+use App\Filament\Resources\Auditorias\AuditoriaResource;
 use App\Models\Aplicacion;
 use App\Models\EstadoApp;
+use App\Servicios\Control\ControlAplicacion;
 use App\Servicios\Monitoreo\AnalizadorMantenimiento;
 use App\Servicios\Monitoreo\LectorLog;
 use App\Servicios\Monitoreo\LecturaApps;
@@ -13,6 +16,7 @@ use App\Servicios\Monitoreo\Semaforo;
 use App\Servicios\Monitoreo\Systemd;
 use App\Support\Formato;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -85,18 +89,38 @@ class MonitorAplicacion extends Page
 
     protected function getHeaderActions(): array
     {
+        $app = fn (): Aplicacion => $this->record;
+        $activa = fn (): bool => $this->record->ultimoEstado()->value('servicio_estado') === 'active';
+
         return [
-            Action::make('abrir')
-                ->label('Abrir app')
-                ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
-                ->color('gray')
-                ->url($this->record->url, shouldOpenInNewTab: true)
-                ->visible(filled($this->record->url)),
-            Action::make('editar')
-                ->label('Editar ficha')
-                ->icon(Heroicon::OutlinedPencilSquare)
-                ->color('gray')
-                ->url(AplicacionResource::getUrl('edit', ['record' => $this->record])),
+            AccionesControl::fija(ControlAplicacion::ENCENDER, $app)->hidden($activa),
+            AccionesControl::fija(ControlAplicacion::APAGAR, $app)->hidden(fn () => ! $activa()),
+            AccionesControl::fija(ControlAplicacion::REINICIAR, $app),
+            ActionGroup::make([
+                ActionGroup::make([
+                    AccionesControl::fija(ControlAplicacion::RECARGAR, $app),
+                    AccionesControl::fija(ControlAplicacion::REINICIAR_COLA, $app),
+                ])->dropdown(false),
+                ActionGroup::make([
+                    Action::make('abrir')
+                        ->label('Abrir app')
+                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                        ->url($this->record->url, shouldOpenInNewTab: true)
+                        ->visible(filled($this->record->url)),
+                    Action::make('editar')
+                        ->label('Editar ficha')
+                        ->icon(Heroicon::OutlinedPencilSquare)
+                        ->url(AplicacionResource::getUrl('edit', ['record' => $this->record])),
+                    Action::make('auditoria')
+                        ->label('Ver auditoría')
+                        ->icon(Heroicon::OutlinedClipboardDocumentList)
+                        ->url(fn () => AuditoriaResource::getUrl('index', ['filters' => ['aplicacion_id' => ['value' => $this->record->id]]])),
+                ])->dropdown(false),
+            ])
+                ->label('Más')
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->button()
+                ->color('gray'),
         ];
     }
 

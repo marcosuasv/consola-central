@@ -1,22 +1,32 @@
 @php
     use App\Servicios\Monitoreo\Semaforo;
+    use App\Servicios\Control\ControlAplicacion;
     use App\Support\Formato;
     use App\Filament\Resources\Aplicaciones\AplicacionResource;
 
     $color = $estado?->semaforo ?? Semaforo::GRIS;
     $alertasVisibles = collect($estado?->alertas ?? [])->sortByDesc(fn ($a) => $a['nivel'] === Semaforo::ROJO)->values();
+    $activa = $estado?->servicioActivo();
+    $esAdmin = auth()->user()?->esAdmin();
+    $acciones = $esAdmin ? array_values(array_filter(
+        ControlAplicacion::disponibles($app),
+        fn ($a) => ! ($a === ControlAplicacion::ENCENDER && $activa) && ! ($a === ControlAplicacion::APAGAR && ! $activa),
+    )) : [];
 @endphp
 
-<a href="{{ AplicacionResource::getUrl('monitor', ['record' => $app]) }}" wire:navigate
-   class="cc-tarjeta cc-borde-{{ $color }}" wire:key="app-{{ $app->id }}">
-
+<article class="cc-tarjeta cc-borde-{{ $color }}" wire:key="app-{{ $app->id }}">
     <div class="cc-tarjeta-cabeza">
         <div class="cc-tarjeta-titulo">
-            <h3>{{ $app->nombre }}</h3>
+            <h3>
+                <a href="{{ AplicacionResource::getUrl('monitor', ['record' => $app]) }}" wire:navigate class="cc-enlace-tarjeta">
+                    {{ $app->nombre }}
+                </a>
+            </h3>
             <p>
+                <x-filament::icon :icon="$app->esFpm() ? 'heroicon-m-cube' : 'heroicon-m-bolt'" class="cc-ico-chico" />
                 {{ $app->esFpm() ? 'PHP-FPM · pool '.$app->pool_fpm : 'Octane · :'.$app->puerto_interno }}
                 @if ($app->es_pruebas) <span class="cc-chip">Pruebas</span> @endif
-                @if ($app->publica_internet) <span class="cc-chip cc-chip-aviso">Internet</span> @endif
+                @if ($app->publica_internet) <span class="cc-chip cc-chip-aviso"><x-filament::icon icon="heroicon-m-globe-alt" class="cc-ico-mini" /> Internet</span> @endif
             </p>
         </div>
         <span class="cc-pill cc-{{ $color }}"><span class="cc-punto"></span>{{ Semaforo::etiqueta($estado ? $color : null) }}</span>
@@ -30,13 +40,13 @@
             </div>
             <div class="cc-metrica">
                 <span class="cc-metrica-etiqueta">Respuesta</span>
-                <span class="cc-metrica-valor {{ ($estado->latencia_ms ?? 0) > config('consola.umbrales.latencia_ms') ? 'cc-texto-amarillo' : '' }}">
+                <span class="cc-metrica-valor {{ ($estado->latencia_ms ?? 0) > config('consola.umbrales.latencia_ms') ? 'cc-texto-amarillo' : '' }} {{ $estado->http_codigo ? '' : 'cc-texto-rojo' }}">
                     {{ $estado->http_codigo ? Formato::milisegundos($estado->latencia_ms) : 'Caída' }}
                 </span>
             </div>
             <div class="cc-metrica">
                 <span class="cc-metrica-etiqueta">Activa hace</span>
-                <span class="cc-metrica-valor">{{ $estado->servicioActivo() ? Formato::duracion($estado->activo_desde) : 'Detenida' }}</span>
+                <span class="cc-metrica-valor">{{ $activa ? Formato::duracion($estado->activo_desde) : 'Detenida' }}</span>
             </div>
             <div class="cc-metrica">
                 <span class="cc-metrica-etiqueta">Memoria</span>
@@ -72,7 +82,15 @@
     @endif
 
     <div class="cc-tarjeta-pie">
-        <span>{{ $estado ? 'Actualizado '.Formato::hace($estado->created_at) : ($app->monitorear ? 'Esperando al recolector' : 'Monitoreo desactivado') }}</span>
-        <span class="cc-ver">Ver detalle <x-filament::icon icon="heroicon-m-arrow-right" class="cc-ico-chico" /></span>
+        @if ($acciones)
+            <div class="cc-controles" role="group" aria-label="Controles de {{ $app->nombre }}">
+                @foreach ($acciones as $accion)
+                    {{ ($this->controlarAction)(['aplicacion' => $app->id, 'accion' => $accion]) }}
+                @endforeach
+            </div>
+        @else
+            <span>{{ $estado ? 'Actualizado '.Formato::hace($estado->created_at) : ($app->monitorear ? 'Esperando al recolector' : 'Monitoreo desactivado') }}</span>
+        @endif
+        <span class="cc-ver">Detalle <x-filament::icon icon="heroicon-m-arrow-right" class="cc-ico-chico" /></span>
     </div>
-</a>
+</article>
