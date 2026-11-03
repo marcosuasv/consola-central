@@ -57,6 +57,15 @@ class EvaluadorAppTest extends TestCase
         $this->assertSame(Semaforo::ROJO, $this->color($this->sana(['http_codigo' => 500]), ['es_pruebas' => true]));
     }
 
+    public function test_mensajes_en_singular_y_plural(): void
+    {
+        $mensajes = fn (array $l) => array_column((new EvaluadorApp)->evaluar($this->app(), $this->sana($l))['alertas'], 'mensaje');
+
+        $this->assertContains('1 error en laravel.log en 24 h.', $mensajes(['errores_log_24h' => 1]));
+        $this->assertContains('3 errores en laravel.log en 24 h.', $mensajes(['errores_log_24h' => 3]));
+        $this->assertContains('1 job fallido en 24 h.', $mensajes(['jobs_fallidos_24h' => 1]));
+    }
+
     public function test_peor_color(): void
     {
         $this->assertSame(Semaforo::ROJO, Semaforo::peor(Semaforo::VERDE, Semaforo::ROJO, Semaforo::AMARILLO));
