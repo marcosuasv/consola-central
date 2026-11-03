@@ -1,7 +1,4 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+// La raíz "/" la atiende el panel de Filament (Consola Central).
+// Las rutas propias de la consola se agregarán aquí si hacen falta.
