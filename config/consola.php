@@ -6,6 +6,9 @@
  */
 return [
 
+    // Los administradores necesitan verificación en dos pasos para usar los controles.
+    'mfa_admin' => env('CONSOLA_MFA_ADMIN', true),
+
     // Ventana para considerar una sesión como "conectada".
     'minutos_sesion' => 15,
 

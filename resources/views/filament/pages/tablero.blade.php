@@ -6,69 +6,54 @@
 <x-filament-panels::page>
     <div wire:poll.15s class="cc-tablero">
 
-        {{-- Resumen general --}}
-        <div class="cc-resumen">
-            <div class="cc-resumen-item">
-                <span class="cc-resumen-etiqueta">Aplicaciones</span>
-                <div class="cc-resumen-semaforos">
-                    @foreach ([Semaforo::VERDE, Semaforo::AMARILLO, Semaforo::ROJO, Semaforo::GRIS] as $color)
-                        <span class="cc-pill cc-{{ $color }}" title="{{ Semaforo::etiqueta($color) }}">
-                            <span class="cc-punto"></span>{{ $conteo[$color] }}
-                        </span>
-                    @endforeach
-                </div>
-            </div>
-            <div class="cc-resumen-item">
-                <span class="cc-resumen-etiqueta">Usuarios conectados</span>
-                <span class="cc-resumen-valor">{{ number_format($usuarios) }}</span>
-            </div>
-            <div class="cc-resumen-item">
-                <span class="cc-resumen-etiqueta">Alertas activas</span>
-                <span class="cc-resumen-valor {{ $alertas > 0 ? 'cc-texto-amarillo' : '' }}">{{ $alertas }}</span>
-            </div>
-            <div class="cc-resumen-item">
-                <span class="cc-resumen-etiqueta">Servidor</span>
-                <span class="cc-pill cc-{{ $sistema?->semaforo ?? 'gris' }}">
-                    <span class="cc-punto"></span>{{ Semaforo::etiqueta($sistema?->semaforo) }}
-                </span>
-            </div>
-            <div class="cc-resumen-item cc-resumen-fin">
-                <span class="cc-resumen-etiqueta">Última lectura</span>
-                <span class="cc-resumen-sub {{ $desactualizado ? 'cc-texto-rojo' : '' }}">{{ Formato::hace($ultima) }}</span>
-            </div>
-        </div>
-
         @if ($desactualizado)
-            <div class="cc-aviso cc-aviso-rojo">
+            <div class="cc-aviso cc-aviso-rojo" role="alert">
                 <x-filament::icon icon="heroicon-o-exclamation-triangle" class="cc-ico" />
                 <div>
                     <strong>Los datos no están al día.</strong>
-                    El recolector (<code>php artisan consola:recolectar</code>) no ha corrido en los últimos 3 minutos.
-                    Revisa el timer <code>consola-recolector.timer</code> con <code>systemctl status consola-recolector.timer</code>.
+                    La última lectura fue {{ Formato::hace($ultima) }}. Revisa el recolector con
+                    <code>systemctl status consola-recolector.timer</code>.
                 </div>
             </div>
         @endif
 
         {{-- Servidor --}}
-        @include('filament.partes.sistema', ['sistema' => $sistema])
+        <x-filament::section icon="heroicon-o-server" :collapsible="true" :compact="true">
+            <x-slot name="heading">Servidor DebWebServ</x-slot>
+            <x-slot name="description">10.2.0.170 · Debian 12 · servicios base, recursos y certificados</x-slot>
+            <x-slot name="afterHeader">
+                <span class="cc-pill cc-{{ $sistema?->semaforo ?? 'gris' }}"><span class="cc-punto"></span>{{ Semaforo::etiqueta($sistema?->semaforo) }}</span>
+            </x-slot>
+            @include('filament.partes.sistema', ['sistema' => $sistema])
+        </x-filament::section>
 
         {{-- Aplicaciones --}}
         <div class="cc-encabezado-seccion">
-            <h2>Aplicaciones</h2>
-            <label class="cc-interruptor">
-                <input type="checkbox" wire:model.live="mostrarPruebas">
-                <span>Mostrar entornos de pruebas</span>
-            </label>
+            <div>
+                <h2>Aplicaciones</h2>
+                <p class="cc-nota">Clic en una tarjeta para ver el detalle. Última lectura {{ Formato::hace($ultima) }}.</p>
+            </div>
+            <div class="cc-leyenda">
+                @foreach ([Semaforo::VERDE, Semaforo::AMARILLO, Semaforo::ROJO, Semaforo::GRIS] as $c)
+                    <span class="cc-pill cc-{{ $c }}" title="{{ Semaforo::etiqueta($c) }}"><span class="cc-punto"></span>{{ Semaforo::etiqueta($c) }} · {{ $conteo[$c] }}</span>
+                @endforeach
+                <label class="cc-interruptor">
+                    <input type="checkbox" wire:model.live="mostrarPruebas">
+                    <span>Pruebas</span>
+                </label>
+            </div>
         </div>
 
         @if ($apps->isEmpty())
-            <div class="cc-vacio">
-                <x-filament::icon icon="heroicon-o-server-stack" class="cc-ico-grande" />
-                <p>No hay aplicaciones registradas.</p>
-                <x-filament::button tag="a" :href="\App\Filament\Resources\Aplicaciones\AplicacionResource::getUrl('create')">
-                    Registrar aplicación
-                </x-filament::button>
-            </div>
+            <x-filament::section>
+                <div class="cc-vacio">
+                    <x-filament::icon icon="heroicon-o-server-stack" class="cc-ico-grande" />
+                    <p>No hay aplicaciones registradas.</p>
+                    <x-filament::button tag="a" icon="heroicon-m-plus" :href="\App\Filament\Resources\Aplicaciones\AplicacionResource::getUrl('create')">
+                        Registrar aplicación
+                    </x-filament::button>
+                </div>
+            </x-filament::section>
         @else
             <div class="cc-rejilla">
                 @foreach ($apps as $app)
@@ -77,4 +62,5 @@
             </div>
         @endif
     </div>
+
 </x-filament-panels::page>

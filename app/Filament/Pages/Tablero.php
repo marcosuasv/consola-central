@@ -2,10 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Acciones\AccionesControl;
+use App\Filament\Widgets\ResumenGeneral;
 use App\Models\Aplicacion;
 use App\Models\EstadoSistema;
 use App\Servicios\Monitoreo\Semaforo;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Panel;
 use Filament\Support\Icons\Heroicon;
@@ -29,6 +32,39 @@ class Tablero extends Page
     public static function getRoutePath(Panel $panel): string
     {
         return '/';
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [ResumenGeneral::class];
+    }
+
+    public function getHeaderWidgetsColumns(): int|array
+    {
+        return 1;
+    }
+
+    /** Botones de control de las tarjetas: ['aplicacion' => id, 'accion' => ...]. */
+    public function controlarAction(): Action
+    {
+        return AccionesControl::porArgumentos('controlar');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $problemas = Aplicacion::whereHas('ultimoEstado', fn ($q) => $q->whereIn('semaforo', [Semaforo::ROJO, Semaforo::AMARILLO]))->count();
+
+        return $problemas > 0 ? (string) $problemas : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return Aplicacion::whereHas('ultimoEstado', fn ($q) => $q->where('semaforo', Semaforo::ROJO))->exists() ? 'danger' : 'warning';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Aplicaciones con alertas';
     }
 
     public function getSubheading(): ?string
