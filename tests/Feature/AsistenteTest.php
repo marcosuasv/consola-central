@@ -99,6 +99,8 @@ class AsistenteTest extends TestCase
         $this->assertStringContainsString('fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;', $p->script);
         $this->assertStringContainsString('location = /fpm-status', $p->script);
         $this->assertStringContainsString('pm.status_path = /fpm-status', $p->script);
+        $this->assertStringContainsString('slowlog = /var/log/php8.2-fpm-portal-slow.log', $p->script);
+        $this->assertStringContainsString('php_admin_value[error_log] = /var/log/php8.2-fpm-portal.log', $p->script);
         $this->assertStringContainsString('root /var/www/html/portal_web/public;', $p->script);
         $this->assertStringContainsString("ufw allow 8110/tcp comment 'consola: publico'", $p->script);
         $this->assertStringNotContainsString('CREATE DATABASE', $p->script);
