@@ -5,6 +5,8 @@ namespace App\Servicios\Monitoreo;
 use App\Models\Aplicacion;
 use App\Models\EstadoApp;
 use App\Models\EstadoSistema;
+use App\Models\Respaldo;
+use App\Servicios\Respaldos\ServicioRespaldos;
 use Carbon\CarbonImmutable;
 
 /**
@@ -25,6 +27,7 @@ class Recolector
     {
         $datos = $this->leerApp($app);
         $datos += $this->evaluador->evaluar($app, $datos);
+        $datos = $this->alertaRespaldo($app, $datos);
 
         return $app->estados()->create($datos + ['created_at' => now()]);
     }
@@ -64,6 +67,31 @@ class Recolector
         $datos += $this->sistema->evaluar($datos);
 
         return EstadoSistema::create($datos + ['created_at' => now()]);
+    }
+
+    /**
+     * Paso 14: amarillo si la app respalda y su último respaldo correcto es más viejo que el límite.
+     * Solo avisa cuando la base ya tiene historial (no antes de instalar los respaldos).
+     */
+    private function alertaRespaldo(Aplicacion $app, array $datos): array
+    {
+        if (! $app->respaldo_activo || blank($app->base_datos) || $datos['semaforo'] === Semaforo::GRIS
+            || ! Respaldo::where('base_datos', $app->base_datos)->exists()) {
+            return $datos;
+        }
+
+        $limite = (int) config('consola.respaldos.horas_alerta', 26);
+        $horas = app(ServicioRespaldos::class)->horasSinRespaldo($app);
+
+        if ($horas === null || $horas > $limite) {
+            $datos['alertas'][] = [
+                'nivel' => Semaforo::AMARILLO,
+                'mensaje' => $horas === null ? 'Ningún respaldo correcto de la base de datos.' : "Sin respaldo correcto desde hace {$limite} h o más.",
+            ];
+            $datos['semaforo'] = Semaforo::peor($datos['semaforo'], Semaforo::AMARILLO);
+        }
+
+        return $datos;
     }
 
     /** Borra lecturas más viejas que consola.dias_historial. */

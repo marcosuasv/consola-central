@@ -69,6 +69,8 @@ f2b status [regla]
 f2b unban <regla> <ip>
 cola reintentar <carpeta-app> <id|uuid|all>
 cola reiniciar  <carpeta-app>
+respaldo crear  <base>            # Paso 14 (bloque en docs/consola-ctl/respaldos.sh)
+respaldo purgar <base> <dias>     # Paso 14
 ```
 
 Reglas de implementación:
@@ -203,6 +205,14 @@ de la excepción). Botones: Reintentar uno / todos (`cola reintentar`), Reinicia
   `consola_ro`, regla UFW (solo redes privadas salvo que sea pública) y `systemctl restart fail2ban`.
   Entrega un script bash para que root lo revise y ejecute, y crea la ficha en `aplicaciones`.
 - `docs/AGREGAR_APLICACION.md` con el procedimiento manual paso a paso.
+
+### Paso 14 — Respaldos diarios de bases de datos
+- Comando `consola:respaldar` (timer `consola-respaldos.timer`, 02:17) que respalda la base de cada app con
+  `respaldo_activo` (por defecto todas menos pruebas) y la de la consola, vía `consola-ctl respaldo crear`
+  (root: `mysqldump --single-transaction | gzip` en `/var/backups/consola/<base>/`, carpetas root:consola 0750,
+  archivos 0640). Purga por días conservando siempre las 3 copias más recientes.
+- Tabla `respaldos` (historial), página **Respaldos** con «Respaldar ahora» (admin + 2FA) y alerta amarilla en
+  el Tablero si el último respaldo correcto tiene más de 26 h. Guía: `docs/RESPALDOS.md`.
 
 ## 8. Reglas generales de código
 - Nada de secretos en el repositorio. `.env` está en `.gitignore`.
