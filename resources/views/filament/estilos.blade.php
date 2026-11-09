@@ -216,6 +216,17 @@
     .cc-fila-activa td:first-child { box-shadow: inset 3px 0 0 var(--primary-500); }
     .cc-fila-alerta td { background: color-mix(in oklab, var(--cc-rojo) 6%, transparent); }
 
+    /* Asistentes */
+    .cc-asistente-form { margin-bottom: 1.5rem; }
+    .cc-pasos-asistente ol { list-style: decimal; padding-left: 1.25rem; display: flex; flex-direction: column; gap: .35rem; font-size: .875rem; color: var(--cc-texto); }
+    .cc-pasos-asistente code { font-size: .8em; padding: .05rem .3rem; border-radius: .25rem; background: var(--cc-suave); border: 1px solid var(--cc-borde); }
+    .cc-codigo { border-radius: .75rem; overflow: hidden; border: 1px solid var(--cc-borde); }
+    .cc-codigo-cabeza { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .5rem .85rem; background: #111827; color: #cbd5e1; font-size: .78rem; }
+    .cc-codigo-copiar { padding: .2rem .6rem; border-radius: .4rem; border: 1px solid rgb(255 255 255 / .2); color: #e2e8f0; font-size: .75rem; }
+    .cc-codigo-copiar:hover { background: rgb(255 255 255 / .08); }
+    .cc-codigo .cc-log { border: 0; border-radius: 0; max-height: 36rem; }
+    [x-cloak] { display: none !important; }
+
     /* Logs */
     .cc-filtros { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
     .cc-filtros-derecha { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }

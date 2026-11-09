@@ -56,6 +56,23 @@ return [
         'bytes_seguridad' => 8 * 1024 * 1024, // máximo que se lee de fail2ban.log y de cada access.log
     ],
 
+    // Valores por defecto del asistente para agregar apps y dominios (Paso 13).
+    // Ajustarlos a las plantillas reales del servidor si difieren.
+    'asistente' => [
+        'ip_servidor' => '10.2.0.170',
+        'php' => '/usr/bin/php',
+        'usuario_apps' => 'www-data',
+        'octane_servidor' => 'roadrunner',
+        'certificado' => '/etc/nginx/ssl/local-cert.pem',
+        'certificado_llave' => '/etc/nginx/ssl/local-key.pem',
+        'host_bd' => 'localhost',
+        'redes_privadas' => ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'],
+        'webroot_acme' => '/var/www/letsencrypt',
+        'rango_puertos_internos' => [18000, 18999],
+        // Puertos que el asistente nunca asigna a una app
+        'puertos_reservados' => [22 => 'SSH', 80 => 'HTTP (redirección apps-https)', 3306 => 'MariaDB', 4900 => 'Consola Central'],
+    ],
+
     // Soporte oficial de Laravel (fin de correcciones de seguridad).
     // Fuente: https://laravel.com/docs/releases#support-policy — revisar cada año.
     'soporte_laravel' => [

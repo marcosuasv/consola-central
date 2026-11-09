@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Aplicaciones\Pages;
 
 use App\Filament\Acciones\AccionesControl;
+use App\Filament\Pages\AgregarDominio;
 use App\Filament\Pages\Tablero;
 use App\Filament\Resources\Aplicaciones\AplicacionResource;
 use App\Filament\Resources\Auditorias\AuditoriaResource;
@@ -117,6 +118,11 @@ class MonitorAplicacion extends Page
                         ->label('Editar ficha')
                         ->icon(Heroicon::OutlinedPencilSquare)
                         ->url(AplicacionResource::getUrl('edit', ['record' => $this->record])),
+                    Action::make('dominio')
+                        ->label('Agregar dominio')
+                        ->icon(Heroicon::OutlinedGlobeAlt)
+                        ->visible(fn () => AgregarDominio::canAccess())
+                        ->url(fn () => AgregarDominio::getUrl(['app' => $this->record->id])),
                     Action::make('auditoria')
                         ->label('Ver auditoría')
                         ->icon(Heroicon::OutlinedClipboardDocumentList)
