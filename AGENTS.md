@@ -194,8 +194,11 @@ de la excepción). Botones: Reintentar uno / todos (`cola reintentar`), Reinicia
 - Guardar el informe en tabla `informes` (json + html) y mostrarlo en la consola (historial).
 - Recurso **Avisar** (destinatarios: nombre, correo, activo, nivel mínimo: todo|amarillo|rojo).
 - Enviar por SMTP de Google Workspace (`MAIL_MAILER=smtp`, `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`,
-  `MAIL_SCHEME`/`MAIL_ENCRYPTION` tls, contraseña de aplicación en `.env` — la pone el administrador).
-  Botón "Enviar informe de prueba". El correo es HTML simple con tabla de semáforos.
+  `MAIL_SCHEME=smtp` — en el puerto 587 usa STARTTLS; «tls» no es un valor válido y se ignora —, contraseña de
+  aplicación en `.env`, la pone el administrador). Botón "Enviar informe de prueba". Correo HTML simple.
+- **Avisos inmediatos:** el recolector abre un `incidente` cuando una app (no de pruebas) o el servidor pasa a
+  rojo; si sigue en rojo 2 minutos manda un correo a los destinatarios con `avisos_inmediatos`, y otro al
+  recuperarse. Un fallo de SMTP nunca rompe el recolector. Guía: `docs/INFORME_DIARIO.md`.
 
 ### Paso 13 — Asistente y guía para agregar aplicaciones
 - Asistente en Filament que, a partir de los datos de una app nueva (carpeta, tipo, puertos, base de datos),

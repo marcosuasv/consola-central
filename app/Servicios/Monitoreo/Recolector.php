@@ -6,6 +6,7 @@ use App\Models\Aplicacion;
 use App\Models\EstadoApp;
 use App\Models\EstadoSistema;
 use App\Models\Respaldo;
+use App\Servicios\Informes\GestorIncidentes;
 use App\Servicios\Respaldos\ServicioRespaldos;
 use Carbon\CarbonImmutable;
 
@@ -29,7 +30,10 @@ class Recolector
         $datos += $this->evaluador->evaluar($app, $datos);
         $datos = $this->alertaRespaldo($app, $datos);
 
-        return $app->estados()->create($datos + ['created_at' => now()]);
+        $estado = $app->estados()->create($datos + ['created_at' => now()]);
+        $this->incidentes($app, $estado->semaforo, $estado->alertas ?? []);
+
+        return $estado;
     }
 
     /** @return array<string, mixed> */
@@ -66,7 +70,10 @@ class Recolector
         $datos = $this->sistema->leer();
         $datos += $this->sistema->evaluar($datos);
 
-        return EstadoSistema::create($datos + ['created_at' => now()]);
+        $estado = EstadoSistema::create($datos + ['created_at' => now()]);
+        $this->incidentes(null, $estado->semaforo, $estado->alertas ?? []);
+
+        return $estado;
     }
 
     /**
@@ -92,6 +99,16 @@ class Recolector
         }
 
         return $datos;
+    }
+
+    /** Paso 12: abre/cierra incidentes y manda avisos inmediatos. Nunca debe romper la recolección. */
+    private function incidentes(?Aplicacion $app, string $semaforo, array $alertas): void
+    {
+        try {
+            app(GestorIncidentes::class)->procesar($app, $semaforo, $alertas);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** Borra lecturas más viejas que consola.dias_historial. */

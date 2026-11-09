@@ -227,6 +227,9 @@
     .cc-codigo .cc-log { border: 0; border-radius: 0; max-height: 36rem; }
     [x-cloak] { display: none !important; }
 
+    /* Informes */
+    .cc-informe-marco { width: 100%; height: 75vh; min-height: 40rem; border: 1px solid var(--cc-borde); border-radius: .75rem; background: #fff; }
+
     /* Logs */
     .cc-filtros { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
     .cc-filtros-derecha { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }

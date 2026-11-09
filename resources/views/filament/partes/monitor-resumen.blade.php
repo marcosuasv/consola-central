@@ -22,6 +22,20 @@
             <span>Disponibilidad: <strong>{{ $disponibilidad !== null ? $disponibilidad.' %' : '—' }}</strong></span>
             <span>ahora</span>
         </div>
+
+        <h3 class="cc-caja-titulo cc-mt">Incidentes recientes</h3>
+        @forelse ($incidentes as $i)
+            <div class="cc-fila-dato">
+                <span>
+                    <span class="cc-pill cc-{{ $i->fin ? 'gris' : 'rojo' }}"><span class="cc-punto"></span>{{ $i->fin ? 'Resuelto' : 'En curso' }}</span>
+                    {{ $i->inicio->format('d/m H:i') }} · {{ $i->duracionMinutos() }} min
+                    <small class="cc-sis-sub">{{ mb_strimwidth(implode(' ', $i->motivos ?? []), 0, 90, '…') }}</small>
+                </span>
+                <span class="cc-sis-sub">{{ $i->avisado_en ? 'avisado por correo' : 'sin aviso' }}</span>
+            </div>
+        @empty
+            <p class="cc-sin-datos">Sin caídas registradas.</p>
+        @endforelse
     </section>
 
     <section class="cc-caja">

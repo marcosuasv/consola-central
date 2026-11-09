@@ -39,7 +39,8 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            // Solo smtp o smtps; cualquier otro valor (p. ej. «tls») se ignora y se decide por el puerto (587 = STARTTLS)
+            'scheme' => in_array(env('MAIL_SCHEME'), ['smtp', 'smtps'], true) ? env('MAIL_SCHEME') : null,
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
             'port' => env('MAIL_PORT', 2525),
