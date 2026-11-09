@@ -145,7 +145,7 @@ class AgregarAplicacion extends Page
                                 ->regex(Validador::REGEX_USUARIO_SO),
                             Select::make('octane_servidor')
                                 ->label('Servidor de Octane')
-                                ->options(array_combine(Validador::SERVIDORES_OCTANE, ['Swoole', 'RoadRunner', 'FrankenPHP']))
+                                ->options(['roadrunner' => 'RoadRunner (el que usan las apps actuales)', 'swoole' => 'Swoole', 'frankenphp' => 'FrankenPHP'])
                                 ->required($esOctane)
                                 ->visible($esOctane)
                                 ->native(false),

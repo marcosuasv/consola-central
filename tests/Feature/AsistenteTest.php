@@ -21,7 +21,7 @@ class AsistenteTest extends TestCase
 
     private const APP = [
         'nombre' => 'Inventario', 'carpeta' => 'inventario', 'tipo' => 'octane', 'clave' => 'inventario',
-        'usuario' => 'www-data', 'octane_servidor' => 'swoole', 'puerto_interno' => 18100,
+        'usuario' => 'www-data', 'octane_servidor' => 'roadrunner', 'puerto_interno' => 18100,
         'puertos_publicos' => '8100', 'crear_bd' => true, 'base_datos' => 'inventario',
         'usuario_bd' => 'inventario', 'sesiones_en_bd' => true, 'publica' => false, 'pruebas' => false,
     ];
@@ -65,7 +65,9 @@ class AsistenteTest extends TestCase
             $this->assertContains($ruta, $rutas);
         }
 
-        $this->assertStringContainsString('--port=18100', $p->script);
+        $this->assertStringContainsString('ExecStart=/usr/bin/php artisan octane:start --server=roadrunner --host=127.0.0.1 --port=18100', $p->script);
+        $this->assertStringContainsString('Wants=app-inventario-queue.service app-inventario-scheduler.timer', $p->script);
+        $this->assertStringContainsString('WorkingDirectory=/var/www/html/inventario', $p->script);
         $this->assertStringContainsString('PartOf=app-inventario.service', $p->script);
         $this->assertStringContainsString('error_page 497', $p->script);
         $this->assertStringContainsString('include snippets/laravel-proxy.conf;', $p->script);

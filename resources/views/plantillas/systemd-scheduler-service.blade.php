@@ -8,4 +8,4 @@ Type=oneshot
 User={!! $usuario !!}
 Group={!! $usuario !!}
 WorkingDirectory={!! $ruta !!}
-ExecStart={!! $php !!} {!! $ruta !!}/artisan schedule:run --no-interaction
+ExecStart={!! $php !!} artisan schedule:run --no-interaction

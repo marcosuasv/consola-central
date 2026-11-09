@@ -62,7 +62,7 @@ return [
         'ip_servidor' => '10.2.0.170',
         'php' => '/usr/bin/php',
         'usuario_apps' => 'www-data',
-        'octane_servidor' => 'swoole',
+        'octane_servidor' => 'roadrunner',
         'certificado' => '/etc/nginx/ssl/local-cert.pem',
         'certificado_llave' => '/etc/nginx/ssl/local-key.pem',
         'host_bd' => 'localhost',

@@ -9,7 +9,7 @@ Type=simple
 User={!! $usuario !!}
 Group={!! $usuario !!}
 WorkingDirectory={!! $ruta !!}
-ExecStart={!! $php !!} {!! $ruta !!}/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+ExecStart={!! $php !!} artisan queue:work --sleep=3 --tries=3 --max-time=3600
 Restart=always
 RestartSec=5
 
