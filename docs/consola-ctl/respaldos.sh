@@ -2,14 +2,21 @@
 # Consola Central — Paso 14: respaldos de bases de datos
 # Bloque para AGREGAR a /usr/local/sbin/consola-ctl (como root).
 #
-# 1) Pega estas funciones después de las funciones valida_unidad / valida_app.
-# 2) Dentro del `case "$1" in` principal agrega esta rama:
+# Instalación automática (recomendada), como root:
+#   bash /var/www/html/consola-central/docs/consola-ctl/instalar-respaldos.sh
+# Respalda consola-ctl, inserta este bloque, valida la sintaxis y solo entonces lo reemplaza.
+#
+# Instalación manual:
+# 1) Pega las funciones de abajo después de valida_jail().
+# 2) Antes de la rama `ayuda)` del case principal agrega (consola-ctl ya hizo `shift` de la acción,
+#    así que aquí $1 = operación, $2 = base, $3 = días):
 #
 #      respaldo)
-#        case "${2:-}" in
-#          crear)  [[ $# -eq 3 ]] || error "uso: respaldo crear <base>";         respaldo_crear "$3" ;;
-#          purgar) [[ $# -eq 4 ]] || error "uso: respaldo purgar <base> <dias>"; respaldo_purgar "$3" "$4" ;;
-#          *)      error "acción de respaldo no permitida: ${2:-}" ;;
+#        op="${1:-}"
+#        case "$op" in
+#          crear)  [ $# -eq 2 ] || error "uso: respaldo crear <base>";         respaldo_crear "$2" ;;
+#          purgar) [ $# -eq 3 ] || error "uso: respaldo purgar <base> <dias>"; respaldo_purgar "$2" "$3" ;;
+#          *)      error "respaldo: operación no permitida: $op" ;;
 #        esac ;;
 #
 # Usa las funciones `registrar` y `error` que ya existen en consola-ctl.

@@ -21,8 +21,14 @@ consola-respaldos.timer (02:17)  →  php artisan consola:respaldar  (usuario co
 
 ## Instalación (una vez, como root)
 
-1. **Agregar la acción a consola-ctl.** Sigue las instrucciones de `docs/consola-ctl/respaldos.sh`
-   (funciones + rama `respaldo)` en el `case`). Comprueba:
+1. **Agregar la acción a consola-ctl** con el instalador (respalda el script, inserta el bloque y valida
+   la sintaxis antes de reemplazarlo):
+
+   ```bash
+   bash /var/www/html/consola-central/docs/consola-ctl/instalar-respaldos.sh
+   ```
+
+   Comprueba:
 
    ```bash
    runuser -u consola -- sudo -n /usr/local/sbin/consola-ctl respaldo crear consola_central
