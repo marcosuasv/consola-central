@@ -70,6 +70,8 @@ class Aplicacion extends Model
         'arranque_automatico',
         'publica_internet',
         'monitorear',
+        'respaldo_activo',
+        'respaldo_dias',
         'orden',
         'notas',
     ];
@@ -83,6 +85,8 @@ class Aplicacion extends Model
             'arranque_automatico' => 'boolean',
             'publica_internet' => 'boolean',
             'monitorear' => 'boolean',
+            'respaldo_activo' => 'boolean',
+            'respaldo_dias' => 'integer',
             'orden' => 'integer',
         ];
     }
@@ -143,6 +147,16 @@ class Aplicacion extends Model
         }
 
         return trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($this->carpeta)), '-');
+    }
+
+    public function respaldos(): HasMany
+    {
+        return $this->hasMany(Respaldo::class);
+    }
+
+    public function ultimoRespaldoOk(): HasOne
+    {
+        return $this->hasOne(Respaldo::class)->ofMany(['created_at' => 'max'], fn ($q) => $q->where('resultado', 'ok'));
     }
 
     public function scopeMonitoreadas(Builder $query): Builder

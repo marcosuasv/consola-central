@@ -147,6 +147,24 @@ class AplicacionForm
                             ->regex(Aplicacion::REGEX_LOG_NGINX),
                     ]),
 
+                Section::make('Respaldos')
+                    ->description('Respaldo diario de la base de datos (Paso 14).')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->schema([
+                        Toggle::make('respaldo_activo')
+                            ->label('Respaldar cada noche')
+                            ->default(true)
+                            ->helperText('Los entornos de pruebas normalmente no se respaldan.'),
+                        TextInput::make('respaldo_dias')
+                            ->label('Conservar copias (días)')
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(365)
+                            ->default(14)
+                            ->helperText('Siempre se conservan al menos las 3 copias más recientes.'),
+                    ]),
+
                 Section::make('Comportamiento')
                     ->columns(3)
                     ->columnSpanFull()

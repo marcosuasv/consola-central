@@ -1,0 +1,15 @@
+# /etc/systemd/system/consola-respaldos.service
+# Respaldo diario de las bases de datos de las apps activas (Consola Central, Paso 14).
+[Unit]
+Description=Consola Central - respaldos de bases de datos
+After=mariadb.service
+
+[Service]
+Type=oneshot
+User=consola
+Group=consola
+WorkingDirectory=/var/www/html/consola-central
+ExecStart=/usr/bin/php /var/www/html/consola-central/artisan consola:respaldar --no-ansi
+TimeoutStartSec=4h
+Nice=15
+IOSchedulingClass=idle

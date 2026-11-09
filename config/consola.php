@@ -73,6 +73,16 @@ return [
         'puertos_reservados' => [22 => 'SSH', 80 => 'HTTP (redirección apps-https)', 3306 => 'MariaDB', 4900 => 'Consola Central'],
     ],
 
+    // Paso 14: respaldos diarios de bases de datos (los hace root vía consola-ctl).
+    'respaldos' => [
+        'carpeta' => '/var/backups/consola',     // root:consola 0750; archivos root:root 0640
+        'horas_alerta' => 26,                    // amarillo si el último respaldo correcto es más viejo
+        'timeout' => 1800,                       // segundos máximos por base
+        'respaldar_consola' => true,             // incluir también la base de la consola
+        'base_consola' => env('DB_DATABASE', 'consola_central'),
+        'dias_consola' => 14,
+    ],
+
     // Soporte oficial de Laravel (fin de correcciones de seguridad).
     // Fuente: https://laravel.com/docs/releases#support-policy — revisar cada año.
     'soporte_laravel' => [

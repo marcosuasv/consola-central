@@ -69,6 +69,35 @@ class ConsolaCtl
         return $this->ejecutar('cola.reintentar', $carpeta, ['cola', 'reintentar', $carpeta, $id]);
     }
 
+    /**
+     * Respaldo de una base (Paso 14): root ejecuta mysqldump y escribe en /var/backups/consola/<base>/.
+     * Requiere la acción «respaldo» en consola-ctl (ver docs/RESPALDOS.md).
+     */
+    public function respaldoCrear(string $base): ResultadoCtl
+    {
+        $this->validarBase($base);
+
+        return $this->ejecutar('respaldo.crear', $base, ['respaldo', 'crear', $base], timeout: (int) config('consola.respaldos.timeout', 1800));
+    }
+
+    /** Borra respaldos de más de $dias días, conservando siempre los 3 más recientes. */
+    public function respaldoPurgar(string $base, int $dias): ResultadoCtl
+    {
+        $this->validarBase($base);
+        if ($dias < 1 || $dias > 365) {
+            throw new InvalidArgumentException("Días de retención inválidos: {$dias}");
+        }
+
+        return $this->ejecutar('respaldo.purgar', $base, ['respaldo', 'purgar', $base, (string) $dias]);
+    }
+
+    private function validarBase(string $base): void
+    {
+        if (! preg_match('/^[A-Za-z0-9_-]{1,64}$/', $base)) {
+            throw new InvalidArgumentException("Nombre de base inválido: {$base}");
+        }
+    }
+
     public const REGEX_REGLA_F2B = '/^[A-Za-z0-9_.-]{1,64}$/';
 
     /**
@@ -106,10 +135,10 @@ class ConsolaCtl
     /**
      * @param  list<string>  $argumentos  argumentos para consola-ctl
      */
-    private function ejecutar(string $accion, ?string $objetivo, array $argumentos, bool $auditarExito = true): ResultadoCtl
+    private function ejecutar(string $accion, ?string $objetivo, array $argumentos, bool $auditarExito = true, ?int $timeout = null): ResultadoCtl
     {
         try {
-            $proceso = Process::timeout(self::TIMEOUT)->run(['sudo', '-n', self::BINARIO, ...$argumentos]);
+            $proceso = Process::timeout($timeout ?? self::TIMEOUT)->run(['sudo', '-n', self::BINARIO, ...$argumentos]);
             $salida = trim($proceso->output()."\n".$proceso->errorOutput());
             $resultado = new ResultadoCtl($proceso->successful(), $proceso->exitCode(), $salida);
         } catch (\Throwable $e) {
