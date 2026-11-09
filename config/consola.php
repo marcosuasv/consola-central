@@ -83,6 +83,16 @@ return [
         'dias_consola' => 14,
     ],
 
+    // Paso 12: informe diario y avisos inmediatos por correo.
+    'correo' => [
+        'minutos_confirmacion' => 2,     // minutos en rojo antes de avisar (evita falsas alarmas)
+        'avisar_recuperacion' => true,   // correo cuando vuelve a funcionar
+        'composer' => '/usr/local/bin/composer',
+        'composer_home' => '/var/lib/consola/.composer',
+        'timeout_composer' => 120,
+        'dias_informes' => 90,           // historial de informes que se conserva
+    ],
+
     // Soporte oficial de Laravel (fin de correcciones de seguridad).
     // Fuente: https://laravel.com/docs/releases#support-policy — revisar cada año.
     'soporte_laravel' => [

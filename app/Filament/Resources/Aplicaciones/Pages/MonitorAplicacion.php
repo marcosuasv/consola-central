@@ -9,6 +9,7 @@ use App\Filament\Resources\Aplicaciones\AplicacionResource;
 use App\Filament\Resources\Auditorias\AuditoriaResource;
 use App\Models\Aplicacion;
 use App\Models\EstadoApp;
+use App\Models\Incidente;
 use App\Servicios\Control\ControlAplicacion;
 use App\Servicios\Monitoreo\AnalizadorMantenimiento;
 use App\Servicios\Monitoreo\LectorLog;
@@ -245,6 +246,7 @@ class MonitorAplicacion extends Page
             ],
             'linea_tiempo' => array_column($bloques, 'semaforo'),
             'disponibilidad' => $this->disponibilidad($lecturas),
+            'incidentes' => Incidente::where('aplicacion_id', $app->id)->latest('inicio')->limit(5)->get(),
         ];
     }
 

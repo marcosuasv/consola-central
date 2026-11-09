@@ -34,8 +34,8 @@ class UsuarioForm
                         ->required()
                         ->maxLength(150)
                         ->unique(ignoreRecord: true)
-                        ->endsWith([User::DOMINIO])
-                        ->validationMessages(['ends_with' => 'Solo se permiten cuentas '.User::DOMINIO.'.'])
+                        ->regex('/'.preg_quote(User::DOMINIO, '/').'$/i')
+                        ->validationMessages(['regex' => 'Solo se permiten cuentas '.User::DOMINIO.'.'])
                         ->helperText('Solo cuentas '.User::DOMINIO.'.'),
                     TextInput::make('password')
                         ->label(fn (?User $record) => $record ? 'Nueva contraseña' : 'Contraseña')
