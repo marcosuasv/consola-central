@@ -102,6 +102,19 @@ class AplicacionForm
                             ->placeholder('https://10.2.0.170:8070/')
                             ->url()
                             ->maxLength(255),
+                        TextInput::make('dominios')
+                            ->label('Dominios')
+                            ->placeholder('task.gbpo.com.mx')
+                            ->helperText('Separados por comas. Para configurarlos usa Configuración → Agregar dominio.')
+                            ->maxLength(500)
+                            ->dehydrateStateUsing(fn (?string $state) => filled($state) ? strtolower(preg_replace('/\s+/', '', $state)) : null)
+                            ->rule(fn () => function (string $attribute, $value, \Closure $fail) {
+                                foreach (array_filter(explode(',', strtolower(preg_replace('/\s+/', '', (string) $value)))) as $dominio) {
+                                    if (! preg_match(Aplicacion::REGEX_DOMINIO, $dominio)) {
+                                        $fail("Dominio inválido: {$dominio}");
+                                    }
+                                }
+                            }),
                         TextInput::make('url_salud')
                             ->label('URL de salud')
                             ->placeholder('http://127.0.0.1:18070/')

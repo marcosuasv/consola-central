@@ -45,6 +45,8 @@ class Aplicacion extends Model
 
     public const REGEX_URL_SALUD = '#^https?://(127\.0\.0\.1|localhost)(:\d{1,5})?(/.*)?$#';
 
+    public const REGEX_DOMINIO = '/^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/';
+
     public const REGEX_LOG_NGINX = '#^/var/log/nginx/[A-Za-z0-9._-]+\.log$#';
 
     protected $fillable = [
@@ -58,6 +60,7 @@ class Aplicacion extends Model
         'puerto_interno',
         'puertos_publicos',
         'url',
+        'dominios',
         'url_salud',
         'base_datos',
         'usuario_bd',
@@ -124,6 +127,22 @@ class Aplicacion extends Model
     public function rutaLogs(): string
     {
         return $this->ruta().'/storage/logs';
+    }
+
+    /** @return list<string> */
+    public function listaDominios(): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', (string) $this->dominios))));
+    }
+
+    /** Parte de los nombres de unidad: app-<clave>. Se deduce del servicio o de la carpeta. */
+    public function clave(): string
+    {
+        if ($this->servicio && preg_match('/^app-([a-z0-9-]+?)(\.service)?$/', $this->servicio, $m)) {
+            return $m[1];
+        }
+
+        return trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($this->carpeta)), '-');
     }
 
     public function scopeMonitoreadas(Builder $query): Builder

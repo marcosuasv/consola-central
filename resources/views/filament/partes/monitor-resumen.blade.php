@@ -34,6 +34,7 @@
                 <dt>Puerto interno</dt><dd>{{ $app->puerto_interno }}</dd>
             @endif
             <dt>Puertos públicos</dt><dd>{{ $app->puertos_publicos ?: '—' }}</dd>
+            <dt>Dominios</dt><dd>{{ $app->dominios ? str_replace(',', ', ', $app->dominios) : '—' }}</dd>
             <dt>Base de datos</dt><dd>{{ $app->base_datos ?: '—' }}</dd>
             <dt>Sesiones</dt><dd>{{ $app->sesiones_en_bd ? 'En base de datos' : 'En archivos' }}</dd>
             <dt>Arranque</dt><dd>{{ $app->arranque_automatico ? 'Con el servidor' : 'Manual' }}</dd>
