@@ -13,5 +13,7 @@ pm.start_servers = 3
 pm.min_spare_servers = 2
 pm.max_spare_servers = 6
 pm.max_requests = 500
+; Lo consulta la consola en /fpm-status (solo 127.0.0.1)
+pm.status_path = /fpm-status
 php_admin_value[open_basedir] = {!! $ruta !!}/:/tmp/
 php_admin_flag[expose_php] = off

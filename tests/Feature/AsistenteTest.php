@@ -96,6 +96,10 @@ class AsistenteTest extends TestCase
         $this->assertBashValido($p->script);
         $this->assertContains('/etc/php/8.2/fpm/pool.d/portal.conf', array_column($p->archivos, 'ruta'));
         $this->assertStringContainsString('fastcgi_pass unix:/run/php/php8.2-fpm-portal.sock;', $p->script);
+        $this->assertStringContainsString('fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;', $p->script);
+        $this->assertStringContainsString('location = /fpm-status', $p->script);
+        $this->assertStringContainsString('pm.status_path = /fpm-status', $p->script);
+        $this->assertStringContainsString('root /var/www/html/portal_web/public;', $p->script);
         $this->assertStringContainsString("ufw allow 8110/tcp comment 'consola: publico'", $p->script);
         $this->assertStringNotContainsString('CREATE DATABASE', $p->script);
         $this->assertStringNotContainsString('app-portal.service', $p->script);
