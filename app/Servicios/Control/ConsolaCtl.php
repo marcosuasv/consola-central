@@ -69,10 +69,44 @@ class ConsolaCtl
         return $this->ejecutar('cola.reintentar', $carpeta, ['cola', 'reintentar', $carpeta, $id]);
     }
 
+    public const REGEX_REGLA_F2B = '/^[A-Za-z0-9_.-]{1,64}$/';
+
+    /**
+     * Estado de Fail2ban (lista de reglas o detalle de una). Es una consulta: solo se audita si falla,
+     * para no llenar la auditoría con cada refresco de la pantalla.
+     */
+    public function f2bStatus(?string $regla = null): ResultadoCtl
+    {
+        $argumentos = ['f2b', 'status'];
+        if ($regla !== null) {
+            $this->validarRegla($regla);
+            $argumentos[] = $regla;
+        }
+
+        return $this->ejecutar('f2b.status', $regla ?? 'fail2ban', $argumentos, auditarExito: false);
+    }
+
+    public function f2bUnban(string $regla, string $ip): ResultadoCtl
+    {
+        $this->validarRegla($regla);
+        if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            throw new InvalidArgumentException("IP inválida: {$ip}");
+        }
+
+        return $this->ejecutar('f2b.unban', "{$regla} {$ip}", ['f2b', 'unban', $regla, $ip]);
+    }
+
+    private function validarRegla(string $regla): void
+    {
+        if (! preg_match(self::REGEX_REGLA_F2B, $regla)) {
+            throw new InvalidArgumentException("Regla de Fail2ban inválida: {$regla}");
+        }
+    }
+
     /**
      * @param  list<string>  $argumentos  argumentos para consola-ctl
      */
-    private function ejecutar(string $accion, ?string $objetivo, array $argumentos): ResultadoCtl
+    private function ejecutar(string $accion, ?string $objetivo, array $argumentos, bool $auditarExito = true): ResultadoCtl
     {
         try {
             $proceso = Process::timeout(self::TIMEOUT)->run(['sudo', '-n', self::BINARIO, ...$argumentos]);
@@ -80,6 +114,10 @@ class ConsolaCtl
             $resultado = new ResultadoCtl($proceso->successful(), $proceso->exitCode(), $salida);
         } catch (\Throwable $e) {
             $resultado = new ResultadoCtl(false, null, 'No se pudo ejecutar consola-ctl: '.$e->getMessage());
+        }
+
+        if ($resultado->ok && ! $auditarExito) {
+            return $resultado;
         }
 
         Auditoria::create([
