@@ -83,6 +83,26 @@ class ControlAplicacion
         return $resultados;
     }
 
+    /**
+     * Reintenta un job fallido (por uuid o id) o todos ('all'): consola-ctl cola reintentar.
+     */
+    public function reintentar(Aplicacion $app, string $job): ResultadoCtl
+    {
+        if (! auth()->user()?->esAdmin()) {
+            throw new AuthorizationException('Solo los administradores pueden reintentar jobs.');
+        }
+
+        $resultado = $this->ctl->para($app)->colaReintentar($app->carpeta, $job);
+
+        try {
+            $this->recolector->recolectarApp($app);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return $resultado;
+    }
+
     /** start no se propaga por PartOf: se encienden app, cola y scheduler. */
     private function encender(ConsolaCtl $ctl, Aplicacion $app): array
     {

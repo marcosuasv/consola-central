@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\Tablero;
 use App\Filament\Resources\Aplicaciones\Pages\MonitorAplicacion;
+use App\Filament\Widgets\ResumenGeneral;
 use App\Models\Aplicacion;
 use App\Models\EstadoApp;
 use App\Models\EstadoSistema;
@@ -135,6 +136,20 @@ class MonitoreoTest extends TestCase
         // Valores fuera de lista se corrigen
         $pagina->set('fuente', '../../etc/passwd')->assertSet('fuente', 'laravel')
             ->set('lineas', 99999)->assertSet('lineas', 500);
+    }
+
+    public function test_resumen_cuenta_amarillas_como_en_linea(): void
+    {
+        $this->actingAs(User::factory()->create(['email' => 'admin@gbpo.com.mx']));
+        $colores = ['GamTask' => 'verde', 'pca-gam' => 'amarillo', 'akoc-control' => 'rojo'];
+        foreach (Aplicacion::all() as $app) {
+            $app->estados()->create(['semaforo' => $colores[$app->carpeta] ?? 'gris', 'created_at' => now()]);
+        }
+
+        Livewire::test(ResumenGeneral::class)
+            ->assertSee('Aplicaciones en línea')
+            ->assertSee('2 de 3')
+            ->assertSee('1 con falla · 1 con avisos');
     }
 
     public function test_tablero_avisa_si_no_hay_lecturas_recientes(): void

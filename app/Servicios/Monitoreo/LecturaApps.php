@@ -206,7 +206,8 @@ class LecturaApps
     public function listaPendientes(Aplicacion $app, int $limite = 50): ?array
     {
         return $this->intentar($app, 'jobs', fn () => $this->tabla($app, 'jobs')
-            ?->select(['id', 'queue', 'payload', 'attempts', 'reserved_at', 'created_at'])
+            ?->select(['id', 'queue', 'attempts', 'reserved_at', 'created_at'])
+            ->selectRaw('SUBSTRING(`payload`, 1, 2000) AS payload')
             ->orderBy('id')
             ->limit($limite)
             ->get()
@@ -226,18 +227,39 @@ class LecturaApps
     public function listaFallidos(Aplicacion $app, int $limite = 50): ?array
     {
         return $this->intentar($app, 'failed_jobs', fn () => $this->tabla($app, 'failed_jobs')
-            ?->select(['id', 'uuid', 'queue', 'payload', 'exception', 'failed_at'])
+            // Solo el inicio de payload/exception: pueden medir decenas de KB por fila
+            ?->select(['id', 'uuid', 'queue', 'failed_at'])
+            ->selectRaw('SUBSTRING(`payload`, 1, 2000) AS payload')
+            ->selectRaw('SUBSTRING(`exception`, 1, 6000) AS exception')
             ->orderByDesc('failed_at')
             ->limit($limite)
             ->get()
-            ->map(fn ($j) => [
-                'id' => (int) $j->id,
-                'uuid' => $j->uuid,
-                'cola' => $j->queue,
-                'job' => self::nombreJob($j->payload),
-                'fecha' => CarbonImmutable::parse($j->failed_at, config('app.timezone')),
-                'error' => LectorLog::ocultarSecretos(mb_substr(strtok((string) $j->exception, "\n") ?: '', 0, 300)),
-            ])->all());
+            ->map(fn ($j) => self::mapearFallido($j))
+            ->all());
+    }
+
+    public function totalFallidos(Aplicacion $app): ?int
+    {
+        return $this->intentar($app, 'failed_jobs', fn () => $this->tabla($app, 'failed_jobs')?->count('id'));
+    }
+
+    /**
+     * @return array{id: int, uuid: ?string, cola: ?string, job: string, fecha: CarbonImmutable, error: string, detalle: string}
+     */
+    public static function mapearFallido(object $j): array
+    {
+        $excepcion = LectorLog::ocultarSecretos((string) $j->exception);
+        $lineas = preg_split('/\R/', $excepcion);
+
+        return [
+            'id' => (int) $j->id,
+            'uuid' => $j->uuid ?: null,
+            'cola' => $j->queue,
+            'job' => self::nombreJob($j->payload),
+            'fecha' => CarbonImmutable::parse($j->failed_at, config('app.timezone')),
+            'error' => mb_substr($lineas[0] ?? '', 0, 300),
+            'detalle' => implode("\n", array_slice($lineas, 0, 25)),
+        ];
     }
 
     // ---- Utilidades ----
@@ -246,6 +268,11 @@ class LecturaApps
     {
         $datos = json_decode((string) $payload, true);
         $nombre = is_array($datos) ? ($datos['displayName'] ?? $datos['job'] ?? null) : null;
+
+        // El payload puede venir recortado (JSON incompleto): se busca displayName directamente
+        if (! is_string($nombre) && preg_match('/"displayName"\s*:\s*"((?:[^"\\\\]|\\\\.)+)"/', (string) $payload, $m)) {
+            $nombre = stripslashes($m[1]);
+        }
 
         return is_string($nombre) ? class_basename($nombre) : 'desconocido';
     }
