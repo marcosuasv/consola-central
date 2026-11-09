@@ -226,14 +226,31 @@ de la excepción). Botones: Reintentar uno / todos (`cola reintentar`), Reinicia
 
 ## 9. Despliegue en el servidor (lo hace el administrador)
 
+Un solo comando, como root (funciona con `su` o `su -`):
+
+```bash
+consola-desplegar            # git pull + composer + migraciones + cachés + permisos + reload + comprobación
+consola-desplegar --sin-pull # despliega el código que ya está en la carpeta
+```
+
+Se instala una vez copiándolo fuera del repositorio (así solo root puede cambiarlo); repetir si `bin/consola-desplegar` cambia:
+
+```bash
+install -m 0755 -o root -g root /var/www/html/consola-central/bin/consola-desplegar /usr/local/sbin/consola-desplegar
+```
+
+No ejecuta el seeder ni toca el `.env`. Pasos equivalentes a mano:
+
 ```bash
 # como sistemas
 cd /var/www/html/consola-central && git pull
-composer install --no-dev --optimize-autoloader --no-interaction
-# como root
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# como root (su -)
 cd /var/www/html/consola-central
+rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+runuser -u consola -- php artisan package:discover
 runuser -u consola -- php artisan migrate --force
-runuser -u consola -- php artisan db:seed --class=AplicacionesSeeder --force   # solo si cambió
+runuser -u consola -- php artisan db:seed --class=AplicacionesSeeder --force   # solo si cambió; sobrescribe las fichas
 runuser -u consola -- php artisan optimize:clear
 runuser -u consola -- php artisan filament:optimize-clear
 chown -R consola:consola storage bootstrap/cache
