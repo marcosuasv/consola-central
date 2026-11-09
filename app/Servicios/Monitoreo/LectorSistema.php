@@ -2,6 +2,8 @@
 
 namespace App\Servicios\Monitoreo;
 
+use App\Servicios\Seguridad\RegistroConsolaCtl;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Process;
 
 /**
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\Process;
  */
 class LectorSistema
 {
-    public function __construct(private Systemd $systemd) {}
+    public function __construct(private Systemd $systemd, private RegistroConsolaCtl $registroCtl) {}
 
     /** @return array<string, mixed> columnas de estados_sistema (sin semáforo) */
     public function leer(): array
@@ -77,6 +79,12 @@ class LectorSistema
 
         if ($lectura['cpus'] && $lectura['carga_5'] !== null && $lectura['carga_5'] > $lectura['cpus']) {
             $alertas[] = ['nivel' => Semaforo::AMARILLO, 'mensaje' => "Carga alta: {$lectura['carga_5']} (5 min) con {$lectura['cpus']} CPU."];
+        }
+
+        // Acciones rechazadas por consola-ctl = alguien intentó algo fuera de lo permitido
+        $rechazos = $this->registroCtl->rechazosDesde(CarbonImmutable::now()->subDay());
+        if ($rechazos > 0) {
+            $alertas[] = ['nivel' => Semaforo::AMARILLO, 'mensaje' => "consola-ctl rechazó {$rechazos} ".($rechazos === 1 ? 'acción' : 'acciones').' en 24 h (ver Seguridad).'];
         }
 
         return ['semaforo' => Semaforo::peor(Semaforo::VERDE, ...array_column($alertas, 'nivel')), 'alertas' => $alertas];

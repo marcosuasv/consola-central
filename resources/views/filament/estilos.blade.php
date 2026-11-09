@@ -195,6 +195,27 @@
     .cc-fallido-acciones { flex: none; align-self: center; }
     .cc-fallido-detalle { margin: 0; border-radius: 0; border: 0; max-height: 18rem; }
 
+    /* Seguridad */
+    .cc-reglas { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+    .cc-ips { display: flex; flex-direction: column; gap: .35rem; margin-top: .4rem; }
+    .cc-ips li { display: flex; align-items: center; gap: .5rem; padding: .35rem .5rem; border-radius: .5rem; background: var(--cc-suave); border: 1px solid var(--cc-borde); font-size: .85rem; }
+    .cc-ips-accion { margin-left: auto; }
+    .cc-barras { display: flex; align-items: flex-end; gap: .5rem; height: 9rem; padding-top: 1.2rem; }
+    .cc-barras-24 { gap: 3px; height: 6rem; }
+    .cc-barras-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: .25rem; min-width: 0; }
+    .cc-barras-barra { width: 100%; border-radius: .3rem .3rem 0 0; background: color-mix(in oklab, var(--primary-500) 75%, transparent); min-height: 0; }
+    .cc-barras-24 .cc-barras-barra { border-radius: 2px 2px 0 0; }
+    .cc-barras-valor { font-size: .72rem; font-weight: 600; color: var(--cc-texto); }
+    .cc-barras-etiqueta { font-size: .68rem; color: var(--cc-tenue); white-space: nowrap; }
+    .cc-fila-dato { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .4rem 0; border-bottom: 1px dashed var(--cc-borde); font-size: .85rem; color: var(--cc-texto); }
+    .cc-fila-dato:last-of-type { border-bottom: 0; }
+    .cc-ruta { min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
+    .cc-tabla-clic tbody tr { cursor: pointer; }
+    .cc-tabla-clic tbody tr:hover td { background: var(--cc-suave); }
+    .cc-fila-activa td { background: color-mix(in oklab, var(--primary-500) 8%, transparent) !important; }
+    .cc-fila-activa td:first-child { box-shadow: inset 3px 0 0 var(--primary-500); }
+    .cc-fila-alerta td { background: color-mix(in oklab, var(--cc-rojo) 6%, transparent); }
+
     /* Logs */
     .cc-filtros { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
     .cc-filtros-derecha { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }

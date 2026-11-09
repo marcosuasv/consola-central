@@ -53,6 +53,7 @@ return [
         'bytes_log' => 1024 * 1024,      // máximo que se lee del final de un log
         'lineas_log' => 500,             // máximo de líneas en pantalla
         'archivos_sesion' => 3000,       // máximo de archivos de sesión a revisar (intranet)
+        'bytes_seguridad' => 8 * 1024 * 1024, // máximo que se lee de fail2ban.log y de cada access.log
     ],
 
     // Soporte oficial de Laravel (fin de correcciones de seguridad).
