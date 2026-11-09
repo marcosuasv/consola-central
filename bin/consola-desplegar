@@ -1,0 +1,91 @@
+#!/bin/bash
+# ============================================================================
+# consola-desplegar — actualiza la Consola Central en el servidor en un solo paso.
+#
+# Uso (como root; funciona igual con `su` que con `su -`):
+#   consola-desplegar            # trae el código y despliega
+#   consola-desplegar --sin-pull # despliega el código que ya está en la carpeta
+#
+# Instalación (una vez, como root): copiarlo fuera del repositorio para que solo root pueda cambiarlo.
+#   install -m 0755 -o root -g root /var/www/html/consola-central/bin/consola-desplegar /usr/local/sbin/consola-desplegar
+#
+# No ejecuta el seeder (sobrescribiría cambios hechos en las fichas) ni toca el .env.
+# ============================================================================
+set -euo pipefail
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+DIR="${CONSOLA_DIR:-/var/www/html/consola-central}"
+DUENO="${CONSOLA_DUENO:-sistemas}"      # dueño del código (git y composer)
+USUARIO="${CONSOLA_USUARIO:-consola}"   # usuario que ejecuta la app
+FPM="${CONSOLA_FPM:-php8.2-fpm}"
+URL="${CONSOLA_URL:-http://127.0.0.1:4900/login}"
+
+paso()  { echo; echo "==> $*"; }
+falla() { echo; echo "ERROR: $*" >&2; exit 1; }
+como()  { local u="$1"; shift; runuser -u "$u" -- "$@"; }
+
+main() {
+  local pull=1
+  case "${1:-}" in
+    "") ;;
+    --sin-pull) pull=0 ;;
+    *) falla "opción no reconocida: $1 (usa --sin-pull o nada)" ;;
+  esac
+
+  [[ $EUID -eq 0 ]] || falla "ejecútalo como root (su - y luego consola-desplegar)."
+  [[ -f "$DIR/artisan" ]] || falla "no encuentro la consola en $DIR"
+  cd "$DIR"
+
+  local antes despues
+  antes=$(como "$DUENO" git rev-parse --short HEAD)
+
+  if (( pull )); then
+    paso "1/7 Traer el código (git pull)"
+    [[ -z "$(como "$DUENO" git status --porcelain --untracked-files=no)" ]] \
+      || falla "hay archivos modificados a mano en $DIR. Revisa con: git status"
+    como "$DUENO" git pull --ff-only
+  else
+    paso "1/7 Sin git pull (se usa el código actual)"
+  fi
+  despues=$(como "$DUENO" git rev-parse --short HEAD)
+
+  paso "2/7 Dependencias (composer install --no-dev)"
+  # --no-scripts: los comandos de artisan se corren después como $USUARIO, que es quien puede escribir la caché
+  como "$DUENO" composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+
+  paso "3/7 Caché de paquetes"
+  rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
+  como "$USUARIO" php artisan package:discover --ansi
+
+  paso "4/7 Migraciones"
+  como "$USUARIO" php artisan migrate --force
+
+  paso "5/7 Limpiar cachés"
+  como "$USUARIO" php artisan optimize:clear
+  como "$USUARIO" php artisan filament:optimize-clear
+
+  paso "6/7 Permisos y PHP-FPM"
+  chown -R "$USUARIO:$USUARIO" storage bootstrap/cache
+  systemctl reload "$FPM"
+
+  paso "7/7 Comprobación"
+  local codigo
+  codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$URL" || true)
+  if [[ "$codigo" == "200" ]]; then
+    echo "La consola responde (HTTP 200)."
+  else
+    falla "la consola respondió HTTP ${codigo:-sin respuesta} en $URL. Revisa: tail -n 50 $DIR/storage/logs/laravel.log"
+  fi
+
+  echo
+  if [[ "$antes" == "$despues" ]]; then
+    echo "Listo. Sin cambios de código (versión $despues)."
+  else
+    echo "Listo. Versión $antes → $despues:"
+    como "$DUENO" git log --oneline "$antes..$despues" | sed 's/^/  /'
+  fi
+}
+
+# Todo dentro de main: bash lee el archivo completo antes de ejecutar.
+main "$@"
+exit 0
