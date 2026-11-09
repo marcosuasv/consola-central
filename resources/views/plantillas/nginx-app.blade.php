@@ -1,21 +1,22 @@
 # /etc/nginx/sites-available/app-{!! $clave !!}
-# Generado por Consola Central — revisar antes de instalar.
-# Puertos: {!! implode(', ', $puertos_publicos) !!} (HTTPS). Un acceso por HTTP a un puerto HTTPS se redirige (error_page 497).
-server {
+# {!! $nombre !!} {!! $pruebas ? 'PRUEBAS' : 'PRODUCCION' !!} -> {!! $tipo === 'octane' ? '127.0.0.1:'.$puerto_interno : 'PHP-FPM pool '.$pool !!}
+# Generado por Consola Central (mismo formato que app-gamtask) — revisar antes de instalar.
 @foreach ($puertos_publicos as $puerto)
+server {
     listen {!! $puerto !!} ssl;
-    listen [::]:{!! $puerto !!} ssl;
-@endforeach
-    server_name _;
-
+    server_name {!! $ip_servidor !!};
     ssl_certificate     {!! $certificado !!};
     ssl_certificate_key {!! $certificado_llave !!};
-    error_page 497 https://$host:$server_port$request_uri;
-
-    client_max_body_size 50m;
-
+@if ($puerto !== 443)
+    error_page 497 =301 https://$host:$server_port$request_uri;
+@endif
+    client_max_body_size 50M;
     access_log /var/log/nginx/app-{!! $clave !!}.access.log;
     error_log  /var/log/nginx/app-{!! $clave !!}.error.log;
 
     @include('plantillas.nginx-ubicacion')
 }
+@if (! $loop->last)
+
+@endif
+@endforeach

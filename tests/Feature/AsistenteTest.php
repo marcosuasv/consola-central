@@ -65,7 +65,11 @@ class AsistenteTest extends TestCase
             $this->assertContains($ruta, $rutas);
         }
 
-        $this->assertStringContainsString('ExecStart=/usr/bin/php artisan octane:start --server=roadrunner --host=127.0.0.1 --port=18100', $p->script);
+        $this->assertStringContainsString('ExecStart=/usr/bin/php artisan octane:start --server=roadrunner --host=127.0.0.1 --port=18100 --rpc-host=127.0.0.1 --rpc-port=16100 --workers=auto --max-requests=500 --no-interaction', $p->script);
+        $this->assertStringContainsString('systemctl enable --now app-inventario.service', $p->script);
+        $this->assertStringNotContainsString('WantedBy=app-inventario.service', $p->script);
+        $this->assertStringContainsString("server {\n    listen 8100 ssl;\n    server_name 10.2.0.170;", $p->script);
+        $this->assertStringContainsString('error_page 497 =301 https://$host:$server_port$request_uri;', $p->script);
         $this->assertStringContainsString('Wants=app-inventario-queue.service app-inventario-scheduler.timer', $p->script);
         $this->assertStringContainsString('WorkingDirectory=/var/www/html/inventario', $p->script);
         $this->assertStringContainsString('PartOf=app-inventario.service', $p->script);
@@ -104,6 +108,8 @@ class AsistenteTest extends TestCase
         foreach ([
             ['puerto_interno' => 18070],                       // de GamTask
             ['puertos_publicos' => '8100,443'],               // 443 de GamTask
+            ['puertos_publicos' => '4900'],                   // la propia consola
+            ['puerto_interno' => 18100, 'puerto_rpc' => 16070], // RPC de GamTask
             ['carpeta' => 'GamTask'],                         // ya registrada
             ['carpeta' => '../etc'],
             ['clave' => 'x; rm -rf /'],
@@ -131,6 +137,9 @@ class AsistenteTest extends TestCase
 
         $this->assertBashValido($p->script);
         $this->assertStringContainsString('server_name task.gbpo.com.mx;', $p->script);
+        $this->assertStringContainsString('listen 443 ssl http2;', $p->script);
+        $this->assertStringNotContainsString('http2 on;', $p->script);
+        $this->assertStringNotContainsString('[::]', $p->script);
         $this->assertStringContainsString('certbot certonly --webroot', $p->script);
         $this->assertStringContainsString('/etc/letsencrypt/live/task.gbpo.com.mx/fullchain.pem', $p->script);
         $this->assertStringContainsString('proxy_pass http://127.0.0.1:18070;', $p->script);

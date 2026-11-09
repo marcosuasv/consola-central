@@ -24,16 +24,22 @@ Puertos ya usados: revisa **Configuración → Aplicaciones** (columnas Interno 
 
 Crear en `/etc/systemd/system/`:
 
-- `app-<clave>.service` — `php artisan octane:start --host=127.0.0.1 --port=<interno>`, `Restart=always`,
-  `ExecReload=php artisan octane:reload`.
-- `app-<clave>-queue.service` — `php artisan queue:work`, con `PartOf=app-<clave>.service`.
+- `app-<clave>.service` (igual que `app-gamtask.service`): `User=www-data`, `WorkingDirectory=/var/www/html/<carpeta>`,
+  `Wants=app-<clave>-queue.service app-<clave>-scheduler.timer`,
+  `ExecStart=/usr/bin/php artisan octane:start --server=roadrunner --host=127.0.0.1 --port=<interno> --rpc-host=127.0.0.1 --rpc-port=<interno-2000> --workers=auto --max-requests=500 --no-interaction`,
+  `ExecReload=/usr/bin/php artisan octane:reload`, `Restart=always`.
+- `app-<clave>-queue.service` — `php artisan queue:work --sleep=3 --tries=3 --max-time=3600`, `PartOf=app-<clave>.service`, **sin [Install]**.
 - `app-<clave>-scheduler.service` (oneshot, `php artisan schedule:run`) y
-  `app-<clave>-scheduler.timer` (`OnCalendar=*-*-* *:*:00`), ambos con `PartOf=app-<clave>.service`.
+  `app-<clave>-scheduler.timer` (`OnCalendar=*-*-* *:*:00`, `PartOf=app-<clave>.service`, **sin [Install]**).
+
+La cola y el scheduler arrancan por el `Wants=` de la app, así que solo se habilita la app:
 
 ```bash
 systemctl daemon-reload
-systemctl enable --now app-<clave>.service app-<clave>-queue.service app-<clave>-scheduler.timer
+systemctl enable --now app-<clave>.service
 ```
+
+Puertos que no se deben usar: 22, 80, 3306, 4900 (la consola), los de otras apps y sus RPC (interno − 2000).
 
 Las apps de **pruebas** no se habilitan al arranque (solo `daemon-reload`); se encienden desde la consola.
 
@@ -49,8 +55,10 @@ php-fpm8.2 -t && systemctl reload php8.2-fpm
 
 `/etc/nginx/sites-available/app-<clave>`:
 
-- `listen <puerto> ssl;` por cada puerto público, certificado `/etc/nginx/ssl/local-cert.pem`.
-- `error_page 497 https://$host:$server_port$request_uri;` (redirige HTTP a HTTPS en el mismo puerto).
+- Un bloque `server { listen <puerto> ssl; server_name 10.2.0.170; … }` **por cada puerto público**,
+  certificado `/etc/nginx/ssl/local-cert.pem` + `local-key.pem`, `client_max_body_size 50M;`.
+- En los puertos distintos de 443: `error_page 497 =301 https://$host:$server_port$request_uri;`
+  (redirige HTTP a HTTPS en el mismo puerto).
 - Octane: `proxy_pass http://127.0.0.1:<interno>;` + `include snippets/laravel-proxy.conf;`.
 - FPM: `root /var/www/html/<carpeta>/public;` + `fastcgi_pass unix:/run/php/php8.2-fpm-<pool>.sock;`.
 - Logs: `access_log /var/log/nginx/app-<clave>.access.log;` y `error_log …/app-<clave>.error.log;`

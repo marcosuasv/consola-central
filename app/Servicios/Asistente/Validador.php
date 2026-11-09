@@ -67,12 +67,16 @@ final class Validador
     /** Puertos ya usados por otras apps registradas (interno o públicos). */
     public static function puertosOcupados(?int $excepto = null): array
     {
-        $ocupados = [];
+        $ocupados = config('consola.asistente.puertos_reservados', []);
         foreach (Aplicacion::when($excepto, fn ($q) => $q->whereKeyNot($excepto))->get() as $app) {
             foreach ([$app->puerto_interno, ...$app->listaPuertosPublicos()] as $p) {
                 if ($p) {
                     $ocupados[$p] = $app->nombre;
                 }
+            }
+            // RPC de RoadRunner de las apps Octane (interno - 2000)
+            if ($app->esOctane() && $app->puerto_interno) {
+                $ocupados[$app->puerto_interno - 2000] = $app->nombre.' (RPC)';
             }
         }
 

@@ -31,6 +31,7 @@ class GeneradorAplicacion
             'php' => $c['php'],
             'octane_servidor' => in_array($entrada['octane_servidor'] ?? '', Validador::SERVIDORES_OCTANE, true) ? $entrada['octane_servidor'] : $c['octane_servidor'],
             'puerto_interno' => $tipo === Aplicacion::TIPO_OCTANE ? Validador::puerto($entrada['puerto_interno'] ?? null, 'Puerto interno', 1024) : null,
+            'puerto_rpc' => null,
             'pool' => $tipo === Aplicacion::TIPO_FPM ? Validador::texto($entrada['pool'] ?? $clave, Aplicacion::REGEX_POOL, 'Pool FPM') : null,
             'puertos_publicos' => Validador::puertos($entrada['puertos_publicos'] ?? '', 'Puertos públicos'),
             'publica' => (bool) ($entrada['publica'] ?? false),
@@ -44,8 +45,14 @@ class GeneradorAplicacion
             'certificado_llave' => $c['certificado_llave'],
         ];
 
+        // RoadRunner: puerto RPC = interno - 2000 (como GamTask: 18070 → 16070)
+        if ($d['tipo'] === Aplicacion::TIPO_OCTANE && $d['octane_servidor'] === 'roadrunner') {
+            $d['puerto_rpc'] = Validador::puerto($entrada['puerto_rpc'] ?? ($d['puerto_interno'] - 2000), 'Puerto RPC', 1024);
+        }
+        $d['ip_servidor'] = $c['ip_servidor'];
+
         $ocupados = Validador::puertosOcupados();
-        foreach (array_filter([$d['puerto_interno'], ...$d['puertos_publicos']]) as $p) {
+        foreach (array_filter([$d['puerto_interno'], $d['puerto_rpc'], ...$d['puertos_publicos']]) as $p) {
             Validador::exigir(! isset($ocupados[$p]), "El puerto {$p} ya lo usa ".($ocupados[$p] ?? '').'.');
         }
         Validador::exigir(! in_array($d['puerto_interno'], $d['puertos_publicos'], true), 'El puerto interno no puede ser también público.');
@@ -121,7 +128,7 @@ class GeneradorAplicacion
         if ($d['tipo'] === Aplicacion::TIPO_OCTANE) {
             $s->comando($d['pruebas']
                 ? "echo '  · App de pruebas: no se habilita al arranque. Enciéndela desde la consola.'"
-                : "systemctl enable --now app-{$d['clave']}.service app-{$d['clave']}-queue.service app-{$d['clave']}-scheduler.timer");
+                : "systemctl enable --now app-{$d['clave']}.service   # arranca también la cola y el scheduler (Wants=)");
         } else {
             $s->comando('systemctl reload php8.2-fpm');
         }

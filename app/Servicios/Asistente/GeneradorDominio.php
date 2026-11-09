@@ -163,7 +163,6 @@ class GeneradorDominio
         # Temporal: solo para validar {$d['dominio']} con Let's Encrypt
         server {
             listen 80;
-            listen [::]:80;
             server_name {$d['dominio']};
 
             location ^~ /.well-known/acme-challenge/ {

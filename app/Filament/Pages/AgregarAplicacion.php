@@ -145,6 +145,7 @@ class AgregarAplicacion extends Page
                                 ->regex(Validador::REGEX_USUARIO_SO),
                             Select::make('octane_servidor')
                                 ->label('Servidor de Octane')
+                                ->live()
                                 ->options(['roadrunner' => 'RoadRunner (el que usan las apps actuales)', 'swoole' => 'Swoole', 'frankenphp' => 'FrankenPHP'])
                                 ->required($esOctane)
                                 ->visible($esOctane)
@@ -158,6 +159,14 @@ class AgregarAplicacion extends Page
                                 ->visible($esOctane)
                                 ->rule($noOcupado)
                                 ->helperText('Sugerido: el siguiente libre del rango 18xxx.'),
+                            TextInput::make('puerto_rpc')
+                                ->label('Puerto RPC de RoadRunner')
+                                ->integer()
+                                ->minValue(1024)
+                                ->maxValue(65535)
+                                ->placeholder(fn (Get $get) => $get('puerto_interno') ? (string) ((int) $get('puerto_interno') - 2000) : null)
+                                ->helperText('Vacío = puerto interno − 2000 (como GamTask: 18070 → 16070).')
+                                ->visible(fn (Get $get) => $esOctane($get) && $get('octane_servidor') === 'roadrunner'),
                             TextInput::make('pool')
                                 ->label('Pool de PHP-FPM')
                                 ->regex(Aplicacion::REGEX_POOL)

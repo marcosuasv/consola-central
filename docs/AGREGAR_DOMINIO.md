@@ -35,7 +35,7 @@ certbot certonly --webroot -w /var/www/letsencrypt -d task.gbpo.com.mx --email <
 `/etc/nginx/sites-available/dominio-task.gbpo.com.mx`:
 
 - Bloque en el puerto 80 que redirige a HTTPS (y sirve la validación de Let's Encrypt).
-- Bloque `listen 443 ssl;` con `server_name task.gbpo.com.mx;` que hace `proxy_pass` al puerto interno
+- Bloque `listen 443 ssl http2;` (Nginx 1.22 de Debian 12 no acepta `http2 on;`) con `server_name task.gbpo.com.mx;` que hace `proxy_pass` al puerto interno
   de la app (o `fastcgi_pass` al pool si es FPM).
 - **Usa el mismo log de la app** (`/var/log/nginx/app-<clave>.access.log`) para que la consola y Fail2ban
   vean esas visitas.
