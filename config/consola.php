@@ -70,7 +70,7 @@ return [
         'webroot_acme' => '/var/www/letsencrypt',
         'rango_puertos_internos' => [18000, 18999],
         // Puertos que el asistente nunca asigna a una app
-        'puertos_reservados' => [22 => 'SSH', 80 => 'HTTP (dominios)', 3306 => 'MariaDB', 4900 => 'Consola Central'],
+        'puertos_reservados' => [22 => 'SSH', 80 => 'HTTP (redirección apps-https)', 3306 => 'MariaDB', 4900 => 'Consola Central'],
     ],
 
     // Soporte oficial de Laravel (fin de correcciones de seguridad).

@@ -64,7 +64,8 @@ class GeneradorDominio
             'certificado_llave' => $llave,
             'correo' => $correo,
             'publico' => (bool) ($entrada['publico'] ?? false),
-            'redirigir_http' => $tls === self::TLS_LETSENCRYPT || (bool) ($entrada['redirigir_http'] ?? true),
+            // apps-https ya redirige el puerto 80 para cualquier nombre; el bloque propio solo hace falta con Let's Encrypt
+            'redirigir_http' => $tls === self::TLS_LETSENCRYPT || (bool) ($entrada['redirigir_http'] ?? false),
             'hsts' => (bool) ($entrada['hsts'] ?? false) && $tls !== self::TLS_LOCAL,
             'webroot_acme' => $c['webroot_acme'],
             'ip_servidor' => $c['ip_servidor'],

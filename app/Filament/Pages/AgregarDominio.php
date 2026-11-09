@@ -65,7 +65,7 @@ class AgregarDominio extends Page
             'aplicacion_id' => Aplicacion::whereKey($this->app)->exists() ? $this->app : null,
             'tls' => GeneradorDominio::TLS_LETSENCRYPT,
             'correo' => auth()->user()?->email,
-            'redirigir_http' => true,
+            'redirigir_http' => false,
             'publico' => false,
             'hsts' => false,
         ];
@@ -149,8 +149,8 @@ class AgregarDominio extends Page
                             ->label('Accesible desde internet')
                             ->helperText('Si no, el firewall solo deja entrar a las redes internas. Publicar a internet aumenta la exposición: revisa Seguridad a diario.'),
                         Toggle::make('redirigir_http')
-                            ->label('Redirigir http:// a https://')
-                            ->helperText("Abre el puerto 80 solo para redirigir. Con Let's Encrypt siempre se activa."),
+                            ->label('Bloque propio en el puerto 80')
+                            ->helperText("Normalmente no hace falta: el sitio apps-https del servidor ya redirige http:// → https:// para cualquier nombre. Con Let's Encrypt se activa solo (para la validación)."),
                         Toggle::make('hsts')
                             ->label('Forzar HTTPS en el navegador (HSTS)')
                             ->helperText('Actívalo solo cuando el certificado ya funcione bien. No aplica al certificado local.'),
