@@ -21,6 +21,7 @@ use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Attributes\Url;
 
 /**
  * Detalle en vivo de una app: resumen, usuarios conectados, logs, colas y mantenimiento.
@@ -52,6 +53,7 @@ class MonitorAplicacion extends Page
         'nginx_error' => 'Nginx errores',
     ];
 
+    #[Url]
     public string $pestana = 'resumen';
 
     public string $fuente = 'laravel';
@@ -67,6 +69,10 @@ class MonitorAplicacion extends Page
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);
+
+        if (! array_key_exists($this->pestana, self::PESTANAS)) {
+            $this->pestana = 'resumen';
+        }
     }
 
     public function getTitle(): string|Htmlable
@@ -124,6 +130,24 @@ class MonitorAplicacion extends Page
         ];
     }
 
+    // ---- Acciones de la pestaña Colas (Paso 10) ----
+
+    public function reintentarJobAction(): Action
+    {
+        return AccionesControl::reintentarJob(fn () => $this->record);
+    }
+
+    public function reintentarTodosAction(): Action
+    {
+        return AccionesControl::reintentarTodos(fn () => $this->record);
+    }
+
+    public function reiniciarWorkersAction(): Action
+    {
+        return AccionesControl::fija(ControlAplicacion::REINICIAR_COLA, fn () => $this->record, 'reiniciarWorkers')
+            ->label('Reiniciar workers');
+    }
+
     public function cambiarPestana(string $pestana): void
     {
         if (array_key_exists($pestana, self::PESTANAS)) {
@@ -164,6 +188,7 @@ class MonitorAplicacion extends Page
             'colas' => [
                 'pendientes' => app(LecturaApps::class)->listaPendientes($app),
                 'fallidos' => app(LecturaApps::class)->listaFallidos($app),
+                'total_fallidos' => app(LecturaApps::class)->totalFallidos($app),
             ],
             'mantenimiento' => $this->datosMantenimiento($app, $estado),
             default => [],

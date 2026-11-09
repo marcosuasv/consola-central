@@ -180,6 +180,21 @@
     .cc-avatar { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; margin-right: .4rem; font-size: .72rem; font-weight: 700; color: var(--primary-700); background: color-mix(in oklab, var(--primary-500) 18%, transparent); }
     .cc-error-corto { font-family: ui-monospace, monospace; font-size: .75rem; overflow-wrap: anywhere; }
 
+    /* Colas */
+    .cc-texto-verde { color: var(--success-600) !important; }
+    .cc-barra-cola { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; background: var(--cc-superficie); border: 1px solid var(--cc-borde); border-radius: .75rem; box-shadow: var(--cc-sombra); }
+    .cc-barra-cola-datos, .cc-barra-cola-acciones { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+    .cc-lista-fallidos { display: flex; flex-direction: column; border: 1px solid var(--cc-borde); border-radius: .75rem; overflow: hidden; }
+    .cc-fallido + .cc-fallido { border-top: 1px solid var(--cc-borde); }
+    .cc-fallido summary { display: flex; justify-content: space-between; gap: .75rem; padding: .65rem .85rem; cursor: pointer; list-style: none; }
+    .cc-fallido summary::-webkit-details-marker { display: none; }
+    .cc-fallido summary:hover { background: var(--cc-suave); }
+    .cc-fallido[open] summary { background: var(--cc-suave); }
+    .cc-fallido-info { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+    .cc-fallido-job { font-weight: 600; font-size: .875rem; color: var(--cc-texto); }
+    .cc-fallido-acciones { flex: none; align-self: center; }
+    .cc-fallido-detalle { margin: 0; border-radius: 0; border: 0; max-height: 18rem; }
+
     /* Logs */
     .cc-filtros { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
     .cc-filtros-derecha { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
